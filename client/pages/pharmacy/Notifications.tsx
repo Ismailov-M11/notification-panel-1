@@ -14,23 +14,22 @@ interface IncomingCall {
 // 🧠 Универсальная функция для подключения к backend
 const getApiUrl = () => {
   if (import.meta.env.PROD) {
-    // если проект собран и развернут — использовать тот же домен
-    return window.location.origin;
+    // В продакшене подключаемся к backend Render
+    return "https://notification-backend-1-ilv0.onrender.com";
   } else {
-    // в режиме разработки всегда направляем на backend порт 3001
+    // Локальная разработка
     return "http://localhost:3001";
   }
 };
 
-// 🔔 Класс для звукового сигнала (версия с MP3)
+// 🔔 Класс для звукового сигнала (mp3)
 class AlertSound {
   private audio: HTMLAudioElement | null = null;
   private isPlaying = false;
 
   constructor() {
-    // 🔊 Используем mp3-файл из public/
     this.audio = new Audio("/alert.mp3");
-    this.audio.loop = true; // повторять, пока не остановим
+    this.audio.loop = true;
   }
 
   play() {
@@ -87,7 +86,7 @@ export default function PharmacyNotifications() {
     });
 
     socket.on("incoming_call", (data: IncomingCall) => {
-      console.log("📦 Incoming call received:", data);
+      console.log("📦 Incoming call:", data);
       setIncomingCall(data);
       if (soundRef.current && soundEnabled) {
         soundRef.current.play();
@@ -107,9 +106,7 @@ export default function PharmacyNotifications() {
   }, [navigate, soundEnabled]);
 
   const handleResponse = (accepted: boolean) => {
-    if (soundRef.current) {
-      soundRef.current.stop();
-    }
+    soundRef.current?.stop();
 
     if (socketRef.current && incomingCall) {
       socketRef.current.emit("response", {
@@ -128,9 +125,7 @@ export default function PharmacyNotifications() {
     navigate("/pharmacy/login");
   };
 
-  const toggleSound = () => {
-    setSoundEnabled(!soundEnabled);
-  };
+  const toggleSound = () => setSoundEnabled(!soundEnabled);
 
   const isSoundPlaying = incomingCall !== null;
 
@@ -161,7 +156,7 @@ export default function PharmacyNotifications() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Статус подключения:</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
                   <span className="text-sm">Подключено</span>
                 </div>
               </div>
@@ -191,7 +186,7 @@ export default function PharmacyNotifications() {
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-center text-blue-800">
                   {isSoundPlaying
-                    ? "❗ Входящий звонок - приём заказа!"
+                    ? "❗ Входящий звонок — приём заказа!"
                     : "✓ Система активна и ожидает заказов"}
                 </p>
               </div>
@@ -200,19 +195,19 @@ export default function PharmacyNotifications() {
         </Card>
       </div>
 
-      {/* Модальное окно входящего заказа */}
+      {/* Входящий заказ */}
       {incomingCall && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="absolute w-96 h-96 bg-primary/20 rounded-full animate-pulse"></div>
+            <div className="absolute w-96 h-96 bg-primary/20 rounded-full animate-pulse" />
             <div
               className="absolute w-80 h-80 bg-primary/30 rounded-full animate-pulse"
               style={{ animationDelay: "0.5s" }}
-            ></div>
+            />
             <div
               className="absolute w-64 h-64 bg-primary/40 rounded-full animate-pulse"
               style={{ animationDelay: "1s" }}
-            ></div>
+            />
           </div>
 
           <Card className="w-full max-w-md relative z-10 shadow-2xl">
@@ -221,6 +216,7 @@ export default function PharmacyNotifications() {
                 🔔 Новый заказ!
               </CardTitle>
             </CardHeader>
+
             <CardContent className="pt-8">
               <div className="space-y-6">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -257,6 +253,7 @@ export default function PharmacyNotifications() {
                   >
                     ✅ Принять
                   </Button>
+
                   <Button
                     onClick={() => handleResponse(false)}
                     variant="destructive"
